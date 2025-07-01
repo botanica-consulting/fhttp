@@ -1822,30 +1822,6 @@ func (cc *ClientConn) encodeHeaders(req *http.Request, addGzipHeader bool, trail
 				// fields. We have already checked if any
 				// are error-worthy so just ignore the rest.
 				continue
-			} else if strings.EqualFold(kv.Key, "cookie") {
-				// Per 8.1.2.5 To allow for better compression efficiency, the
-				// Cookie header field MAY be split into separate header fields,
-				// each with one or more cookie-pairs.
-				for _, v := range kv.Values {
-					for {
-						p := strings.IndexByte(v, ';')
-						if p < 0 {
-							break
-						}
-						f("cookie", v[:p])
-						p++
-						// strip space after semicolon if any.
-						for p+1 <= len(v) && v[p] == ' ' {
-							p++
-						}
-						v = v[p:]
-					}
-					if len(v) > 0 {
-						f("cookie", v)
-					}
-				}
-
-				continue
 			} else if strings.EqualFold(kv.Key, "user-agent") {
 				// Match Go's http1 behavior: at most one
 				// User-Agent. If set to nil or empty string,
