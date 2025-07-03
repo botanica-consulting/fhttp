@@ -9,6 +9,38 @@ The "f" stands for "fly" *(or "flex")*. fhttp is a fork of `net/http` that provi
 Documentation can be contributed, otherwise, look at tests and examples. The main one should be [example_client_test.go](example_client_test.go).
 -->
 
+
+This fork is a patch to remove the concatenation of multiple cookie headers into one on forward of http2 requests. This is "not a bug, it's a feature" in http2, but we do not want this behavior in our
+generic impersonate proxy which uses this fork as a submodule.
+The patch involved deleting the following lines in `fhttp/http2/transport.go`:
+
+```go
+else if strings.EqualFold(kv.Key, "cookie") {
+	// Per 8.1.2.5 To allow for better compression efficiency, the
+	// Cookie header field MAY be split into separate header fields,
+	// each with one or more cookie-pairs.
+	for _, v := range kv.Values {
+		for {
+			p := strings.IndexByte(v, ';')
+			if p < 0 {
+				break
+			}
+			f("cookie", v[:p])
+			p++
+			// strip space after semicolon if any.
+			for p+1 <= len(v) && v[p] == ' ' {
+				p++
+			}
+			v = v[p:]
+		}
+		if len(v) > 0 {
+			f("cookie", v)
+		}
+	}
+
+	continue
+```
+
 ## Features
 
 ### Ordered Headers
