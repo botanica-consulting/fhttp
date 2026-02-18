@@ -8641,7 +8641,9 @@ func (cc *http2ClientConn) encodeHeaders(req *Request, addGzipHeader bool, trail
 				continue
 			}
 
-			return nil, fmt.Errorf("invalid HTTP header name %q", k)
+			// Botanica - allow non-standard header names (e.g. trailing colon)
+			// return nil, fmt.Errorf("invalid HTTP header name %q", k)
+			continue
 		}
 		for _, v := range vv {
 			if !httpguts.ValidHeaderFieldValue(v) {
